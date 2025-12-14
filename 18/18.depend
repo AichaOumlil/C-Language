@@ -1,0 +1,5 @@
+# depslib dependency file v1.0
+1761678701 source:c:\my priject c.b\18\main.c
+	<stdio.h>
+	<stdlib.h>
+
