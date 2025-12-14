@@ -1,0 +1,48 @@
+name: Update Year Progress
+
+on:
+  schedule:
+    - cron: "0 0 * * *"   # runs daily at midnight UTC
+  workflow_dispatch:
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Update README
+        run: |
+          python - << 'EOF'
+          import datetime, re
+          today = datetime.date.today()
+          year_days = 366 if today.year % 4 == 0 else 365
+          progress = (today.timetuple().tm_yday / year_days) * 100
+          
+          # Emoji gradient bar
+          bar_length = 10
+          filled = int(bar_length * progress / 100)
+          bar = "🟩" * filled + "⬜" * (bar_length - filled)
+
+          line = f"⏳ **Year Progress:** {{ {bar} }} {progress:.2f}% as on ⏰ {today.strftime('%d-%b-%Y')}"
+          
+          with open("README.md", "r", encoding="utf-8") as f:
+              content = f.read()
+          new_content = re.sub(r"⏳ \*\*Year Progress:\*\*.*", line, content)
+          with open("README.md", "w", encoding="utf-8") as f:
+              f.write(new_content)
+          EOF
+
+      - name: Commit changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "Update Year Progress"
+          git push
